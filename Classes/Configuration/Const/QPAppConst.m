@@ -16,3 +16,5 @@ NSString *const kWriteThemeStyleFlagOnceOnly = @"kWriteThemeStyleFlagOnceOnly";
 NSString *const kThemeStyleOnOff = @"kThemeStyleOnOff";
 
 NSString *const kThemeStyleDidChangeNotification = @"kThemeStyleDidChangeNotification";
+
+NSString *const kCarrierNetworkAllowed = @"kCarrierNetworkAllowed";

@@ -8,10 +8,11 @@
 #ifndef QPPchFile_h
 #define QPPchFile_h
 
+#pragma mark - Internal
+
 #import "AppDelegate.h"
 #import "QPMacros.h"
 #import "QPGlobalDef.h"
-#import "QPHudObject.h"
 #import "QPTitleView.h"
 
 #pragma mark - Category
