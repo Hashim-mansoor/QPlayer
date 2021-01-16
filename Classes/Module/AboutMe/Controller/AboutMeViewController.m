@@ -242,7 +242,7 @@
         footer.width     = self.view.width;
         footer.height    = self.m_tableView.height - headerH - count*cellH;
         
-        @QPWeakObject(self)
+        @QPWeakify(self)
         
         [footer onAct:^(AMFooterActionType type) {
             if (type == AMFooterActionTypeJianShu) {

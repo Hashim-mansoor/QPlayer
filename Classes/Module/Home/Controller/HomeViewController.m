@@ -146,7 +146,7 @@ NSInteger yf_sortObjects(FileModel *obj1, FileModel *obj2, void *context) {
 }
 
 - (void)buildMJRefreshHeader {
-    @QPWeakObject(self)
+    @QPWeakify(self)
     
     MJRefreshNormalHeader *mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
         [weak_self loadNewData];
@@ -226,7 +226,7 @@ NSInteger yf_sortObjects(FileModel *obj1, FileModel *obj2, void *context) {
 }
 
 - (NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath {
-    @QPWeakObject(self)
+    @QPWeakify(self)
     
     UITableViewRowAction *deleteRowAction = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleDestructive title:@"删除" handler:^(UITableViewRowAction * _Nonnull action, NSIndexPath * _Nonnull indexPath) {
         [weak_self deleteRowAtIndexPath:indexPath];

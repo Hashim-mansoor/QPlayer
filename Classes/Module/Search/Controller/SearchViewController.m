@@ -91,7 +91,7 @@
 
 - (void)adjustTitleViewColor {
     
-    BOOL bValue = [QPlayerExtractFlag(kThemeStyleOnOff) boolValue];
+    BOOL bValue = [QPlayerExtractValue(kThemeStyleOnOff) boolValue];
     if (bValue) {
         
         if (@available(iOS 13.0, *)) {
@@ -211,7 +211,10 @@
         if (QPlayerCanSupportAVFormat(tempStr)) {
             
             self.titleView.text = url = text;
-            [self playRemoteVideoWithUrl:url];
+            
+            if (QPlayerDetermineWhetherToPlay()) {
+                [self playRemoteVideoWithUrl:url];
+            }
             
         } else if ([tempStr hasPrefix:@"https"] ||
                    [tempStr hasPrefix:@"http"]) {
@@ -237,6 +240,10 @@
 }
 
 - (void)playRemoteVideoWithUrl:(NSString *)url {
+    
+    if (!QPlayerDetermineWhetherToPlay()) {
+        return;
+    }
     
     if (!QPlayerIsPlaying()) {
         QPlayerSavePlaying(YES);
@@ -388,11 +395,14 @@
             
         } else {
             
-            if (![self parse80sHtmlString:aURL]) {
-                [self delayToScheduleTask:1.0 completion:^{
-                    [QPHudObject hideHUD];
-                }];
+            if (QPlayerDetermineWhetherToPlay()) {
+                if (![self parse80sHtmlString:aURL]) {
+                    [self delayToScheduleTask:1.0 completion:^{
+                        [QPHudObject hideHUD];
+                    }];
+                };
             }
+            
             return NO;
         }
         
@@ -416,6 +426,7 @@
 }
 
 - (BOOL)parse80sHtmlString:(NSURL *)aURL {
+    
     [QPHudObject showActivityMessageInView:@"正在解析..."];
     
     BOOL shouldPlay = NO;
@@ -490,6 +501,10 @@
 
 - (void)attemptToPlayVideo:(NSString *)url {
     QPLog(@"videoUrl: %@", url);
+    
+    if (!QPlayerDetermineWhetherToPlay()) {
+        return;
+    }
     
     [QPHudObject showActivityMessageInView:@"正在解析..."];
     
@@ -611,6 +626,11 @@
     
     searchViewController.delegate    = self;
     searchViewController.dataSource  = self;
+    // @"https://m.mtime.cn/",
+    // @"http://ten.budejie.com/video/",
+    // @"https://translate.google.cn/",
+    // @"https://fanyi.baidu.com/",
+    // @"https://fanyi.youdao.com/",
     searchViewController.hotSearches = @[@"https://www.baidu.com/",
                                          @"https://wap.sogou.com/",
                                          @"https://m.so.com/",
@@ -623,13 +643,12 @@
                                          @"https://m.tv.sohu.com/",
                                          @"https://m.pptv.com/",
                                          @"https://m.le.com/",
-                                         @"https://m.mtime.cn/",
                                          
                                          @"https://m.ixigua.com/",
                                          @"https://v.ifeng.com/",
                                          @"https://haokan.baidu.com/",
                                          @"https://www.pearvideo.com/?from=intro",
-                                         @"http://ten.budejie.com/video/",
+                                         
                                          @"https://m.ku6.com/index",
                                          
                                          @"https://www.y80s.net/",
@@ -640,13 +659,9 @@
                                          @"https://sports.sina.cn/?from=wap",
                                          @"https://m.sohu.com/z/",
                                          
-                                         @"https://translate.google.cn/",
-                                         @"https://fanyi.baidu.com/",
-                                         @"https://fanyi.youdao.com/",
-                                         
-                                         @"https://m.imooc.com/",
+                                         @"https://www.jikexueyuan.com/",
                                          @"https://m.study.163.com/",
-                                         @"https://www.jikexueyuan.com/"];
+                                         @"https://m.imooc.com/"];
     
     searchViewController.searchBar.tintColor = UIColor.blueColor;
     searchViewController.searchHistoriesCachePath = VIDEO_SEARCH_HISTORY_CACHE_PATH;

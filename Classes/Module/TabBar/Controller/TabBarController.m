@@ -100,7 +100,7 @@
     UIFont *font = [UIFont boldSystemFontOfSize:13.f];
     UITabBarItem *tabBarItem = [UITabBarItem appearance];
     
-    BOOL bValue = [QPlayerExtractFlag(kThemeStyleOnOff) boolValue];
+    BOOL bValue = [QPlayerExtractValue(kThemeStyleOnOff) boolValue];
     if (bValue) {
         
         if (@available(iOS 10.0, *)) {

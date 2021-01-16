@@ -130,7 +130,7 @@
 
 - (void)adjustTitleViewColor {
     
-    BOOL bValue = [QPlayerExtractFlag(kThemeStyleOnOff) boolValue];
+    BOOL bValue = [QPlayerExtractValue(kThemeStyleOnOff) boolValue];
     if (bValue) {
         
         if (@available(iOS 13.0, *)) {
@@ -188,7 +188,7 @@
     playBtn.width  = 60;
     playBtn.height = 60;
     playBtn.left   = -20;
-    playBtn.top    = (self.webView.height - playBtn.height)/2;
+    playBtn.top    = (self.webView.height - playBtn.height - QPStatusBarAndNavigationBarHeight)/2;
     
     playBtn.backgroundColor = UIColor.clearColor;
     playBtn.tag             = 10;
@@ -203,7 +203,7 @@
                             borderColor:nil];
     [playBtn setBackgroundImage:bgImage forState:UIControlStateNormal];
     
-    [playBtn setTitle:@"直播\n TV" forState:UIControlStateNormal];
+    [playBtn setTitle:@"电视\n TV" forState:UIControlStateNormal];
     [playBtn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
     [playBtn setTitleColor:UIColor.grayColor forState:UIControlStateHighlighted];
     [playBtn setTitleShadowColor:UIColor.brownColor forState:UIControlStateNormal];
@@ -243,16 +243,18 @@
         dropListView.alpha = 1.f;
     } completion:^(BOOL finished) {}];
     
-    @QPWeakObject(self)
+    @QPWeakify(self)
     
     [dropListView onSelectRow:^(NSInteger selectedRow, NSString *title, NSString *content) {
-        @QPStrongObject(self)
+        @QPStrongify(self)
         strong_self.playButton.enabled = YES;
         
-        NSString *aUrl = [content copy];
-        strong_self.titleView.text = [content copy];
-        
-        [strong_self playVideoWithTitle:[title copy] urlString:aUrl];
+        if (QPlayerDetermineWhetherToPlay()) {
+            NSString *aUrl = [content copy];
+            strong_self.titleView.text = [content copy];
+            
+            [strong_self playVideoWithTitle:[title copy] urlString:aUrl];
+        }
     }];
     
     [dropListView onCloseAction:^{
@@ -325,9 +327,11 @@
             [tempStr hasPrefix:@"mms"]         ||
             QPlayerCanSupportAVFormat(tempStr)) {
             
-            self.titleView.text = url = text;
-            NSString *title = [self titleMatchingWithUrl:url];
-            [self playVideoWithTitle:title urlString:url];
+            if (QPlayerDetermineWhetherToPlay()) {
+                self.titleView.text = url = text;
+                NSString *title = [self titleMatchingWithUrl:url];
+                [self playVideoWithTitle:title urlString:url];
+            }
             return;
             
         } else if ([tempStr hasPrefix:@"https"] ||
@@ -496,13 +500,17 @@
 - (void)attemptToPlayVideo:(NSString *)url {
     QPLog(@"videoUrl: %@", url);
     
+    if (!QPlayerDetermineWhetherToPlay()) {
+        return;
+    }
+    
     [QPHudObject showActivityMessageInView:@"正在解析..."];
     
     NSString *videoTitle = self.webView.title;
     QPLog(@"videoTitle: %@", videoTitle);
     
     if (url && url.length > 0 && [url hasPrefix:@"http"]) {
-       
+        
         [self delayToScheduleTask:1.0 completion:^{
             [QPHudObject hideHUD];
             [self playVideoWithTitle:videoTitle urlString:url];
@@ -617,27 +625,26 @@
     
     searchViewController.delegate    = self;
     searchViewController.dataSource  = self;
+    // @"https://www.chushou.tv/",
+    // @"https://live.bilibili.com/h5/",
+    // @"https://m-x.pps.tv/",
+    // @"https://now.qq.com/",
+    // @"http://m.azhibo.com/",
     searchViewController.hotSearches = @[@"https://h5.inke.cn/app/home/hotlive",
                                          @"https://h.huajiao.com/",
                                          @"https://wap.yy.com/",
                                          @"https://m.yizhibo.com/",
                                          @"https://m.v.6.cn/",
                                          @"https://h5.9xiu.com/",
-                                         @"https://now.qq.com/",
-                                         @"https://m-x.pps.tv/",
-                                         
+                                         @"https://www.95.cn/mobile?channel=ai00011",
+                                         @"http://tv.cctv.com/live/m/",
                                          @"https://cdn.egame.qq.com/pgg-play/module/livelist.html",
                                          @"https://m.douyu.com/",
                                          @"https://m.huya.com/",
-                                         @"https://www.chushou.tv/",
                                          @"https://h5.cc.163.com/",
-                                         @"https://live.bilibili.com/h5/",
-                                         
                                          @"https://m.tv.bingdou.net/",
                                          @"http://m.66zhibo.net/",
-                                         @"http://m.migu123.com/",
-                                         @"http://tv.cctv.com/live/m/",
-                                         @"http://m.azhibo.com/"];
+                                         @"http://m.migu123.com/"];
     
     searchViewController.searchBar.tintColor = UIColor.blueColor;
     searchViewController.searchHistoriesCachePath = LIVE_SEARCH_HISTORY_CACHE_PATH;

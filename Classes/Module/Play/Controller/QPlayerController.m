@@ -177,7 +177,7 @@
     titleLabel.font            = [UIFont boldSystemFontOfSize:16.f];
     titleLabel.textColor       = UIColor.whiteColor;
     titleLabel.textAlignment   = NSTextAlignmentCenter;
-    titleLabel.text            = QPInfoDictionary[@"CFBundleName"];
+    titleLabel.text            = @""; // QPInfoDictionary[@"CFBundleName"];
     
     titleLabel.height = 30.f;
     titleLabel.left   = backButton.right - 12.f;
