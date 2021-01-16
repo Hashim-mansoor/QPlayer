@@ -10,7 +10,7 @@
 @interface BaseViewController ()
 
 // Declares a web view object.
-@property (nonatomic, strong) WKWebView *m_webView;
+@property (nonatomic, strong) WKWebView *wkWebView;
 @property (nonatomic, assign) BOOL isAddedToNavBar;
 @property (nonatomic, strong) DYFWebProgressView *progressView;
 
@@ -45,7 +45,7 @@
 
 - (void)identifyMode {
     
-    BOOL bValue = [QPlayerExtractFlag(kThemeStyleOnOff) boolValue];
+    BOOL bValue = [QPlayerExtractValue(kThemeStyleOnOff) boolValue];
     if (bValue) {
         
         if (@available(iOS 13.0, *)) {
@@ -68,6 +68,10 @@
     } else {
         
         [self adjustLightTheme];
+    }
+    
+    if (self.wkWebView) {
+        [self adjustThemeForWebView:self.wkWebView];
     }
 }
 
@@ -124,50 +128,53 @@
     return button;
 }
 
-- (WKWebViewConfiguration *)wk_webViewConfiguration {
-    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
+- (WKWebViewConfiguration *)wkWebViewConfiguration {
+    WKWebViewConfiguration *conf = [[WKWebViewConfiguration alloc] init];
     
     WKPreferences *preferences = [[WKPreferences alloc] init];
     preferences.minimumFontSize = 0;
     preferences.javaScriptEnabled = YES;
-    preferences.javaScriptCanOpenWindowsAutomatically = YES;
-    config.preferences = preferences;
+    preferences.javaScriptCanOpenWindowsAutomatically = NO;
+    conf.preferences = preferences;
     
-    config.allowsInlineMediaPlayback = YES;
+    conf.processPool = [[WKProcessPool alloc] init];
+    conf.userContentController = [[WKUserContentController alloc] init];
+    
+    conf.allowsInlineMediaPlayback = YES;
     
     if (@available(iOS 9.0, *)) {
         
         if (@available(iOS 10.0, *)) {
-            config.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeAll;
+            conf.mediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypeNone;
         } else {
-            config.requiresUserActionForMediaPlayback = YES;
+            conf.requiresUserActionForMediaPlayback = NO;
         }
         
         // The default value is YES.
-        config.allowsAirPlayForMediaPlayback = YES;
-        config.allowsPictureInPictureMediaPlayback = YES;
+        conf.allowsAirPlayForMediaPlayback = YES;
+        conf.allowsPictureInPictureMediaPlayback = YES;
         
     } else {
         // Fallback on earlier versions
-        config.mediaPlaybackAllowsAirPlay = YES;
-        config.mediaPlaybackRequiresUserAction = YES;
+        conf.mediaPlaybackAllowsAirPlay = YES;
+        conf.mediaPlaybackRequiresUserAction = YES;
     }
     
-    return config;
+    return conf;
 }
 
 - (void)initWebViewWithFrame:(CGRect)frame {
-    [self initWebViewWithFrame:frame configuration:self.wk_webViewConfiguration];
+    [self initWebViewWithFrame:frame configuration:self.wkWebViewConfiguration];
 }
 
 - (void)initWebViewWithFrame:(CGRect)frame configuration:(WKWebViewConfiguration *)configuration {
-    if (!_m_webView) {
-        _m_webView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
+    if (!_wkWebView) {
+        _wkWebView = [[WKWebView alloc] initWithFrame:frame configuration:configuration];
     }
 }
 
 - (WKWebView *)webView {
-    return _m_webView;
+    return _wkWebView;
 }
 
 - (void)willAddProgressViewToWebView {
@@ -197,7 +204,6 @@
 }
 
 - (void)webView:(WKWebView *)webView didCommitNavigation:(WKNavigation *)navigation {
-    [self adjustThemeForWebView:webView];
     [self buildProgressView];
 }
 
@@ -244,10 +250,18 @@
 }
 
 - (void)adjustThemeForWebView:(WKWebView *)webView {
+    //[webView evaluateJavaScript:@"document.body.style.backgroundColor" completionHandler:^(id _Nullable result, NSError * _Nullable error) {
+    //if (!error) {
+    //    QPLog(@"result: %@", result);
+    //} else {
+    //QPLog(@"error: %@, %@", @(error.code), error.localizedDescription);
+    //}
+    //}];
+    
     NSString *bgColor   = @"";
     NSString *textColor = @"";
     
-    BOOL bValue = [QPlayerExtractFlag(kThemeStyleOnOff) boolValue];
+    BOOL bValue = [QPlayerExtractValue(kThemeStyleOnOff) boolValue];
     if (bValue && self.isDarkMode) {
         bgColor   = @"'#1E1E1E'";
         textColor = @"'#B4B4B4'";
@@ -256,8 +270,11 @@
         textColor = @"'#303030'";
     }
     
-    [webView evaluateJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.backgroundColor=%@", bgColor] completionHandler:nil];
-    [webView evaluateJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextFillColor=%@", textColor] completionHandler:nil];
+    // document.getElementsByTagName('body')[0].style.backgroundColor
+    // document.body.style.backgroundColor
+    [webView evaluateJavaScript:[NSString stringWithFormat:@"document.body.style.backgroundColor=%@", bgColor] completionHandler:NULL];
+    // document.getElementsByTagName('body')[0].style.webkitTextFillColor
+    [webView evaluateJavaScript:[NSString stringWithFormat:@"document.getElementsByTagName('body')[0].style.webkitTextFillColor=%@", textColor] completionHandler:NULL];
 }
 
 // Navigates to the back item in the back-forward list.
@@ -276,6 +293,10 @@
 
 // Reloads the current page.
 - (void)onReload {
+    if (_progressView) {
+        [self.progressView endLoading];
+        _progressView = nil;
+    }
     [self.webView reload];
 }
 
@@ -287,8 +308,8 @@
 }
 
 - (void)releaseWebView {
-    if (_m_webView) {
-        self.m_webView = nil;
+    if (_wkWebView) {
+        _wkWebView = nil;
     }
 }
 

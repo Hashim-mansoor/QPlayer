@@ -52,7 +52,7 @@
 - (UINavigationBar *)navigationBar;
 
 // A collection of properties used to initialize a web view.
-- (WKWebViewConfiguration *)wk_webViewConfiguration;
+- (WKWebViewConfiguration *)wkWebViewConfiguration;
 
 // Initializes a web view with a specified frame.
 - (void)initWebViewWithFrame:(CGRect)frame;
